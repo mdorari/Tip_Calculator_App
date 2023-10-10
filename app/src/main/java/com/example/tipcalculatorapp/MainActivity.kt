@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tipcalculatorapp.components.InputField
 import com.example.tipcalculatorapp.ui.theme.TipCalculatorAppTheme
+import com.example.tipcalculatorapp.util.calculateTotalTip
 import com.example.tipcalculatorapp.widgets.RoundIconButton
 
 class MainActivity : ComponentActivity() {
@@ -94,7 +95,6 @@ fun TopHeader(totalPerPeron: Double = 0.0) {
 fun MainContent() {
     Column(modifier = Modifier.padding(all = 12.dp)) {
         BillForm() { billAmount ->
-            Log.d("TAG", "MainContent: $billAmount")
         }
     }
 }
@@ -128,7 +128,11 @@ fun BillForm(
     val sliderPositionState = remember {
         mutableStateOf(0f)
     }
+    val tipAmountState = remember {
+        mutableStateOf(0.0)
+    }
     val tipPercentage = (sliderPositionState.value * 100).toInt()
+
 
 
     TopHeader()
@@ -152,6 +156,7 @@ fun BillForm(
                 onAction = KeyboardActions {
                     if (!validState) return@KeyboardActions
                     onValueChange(totalBillState.value.trim())
+                    Log.d("TAG", "total bill: ${totalBillState.value}")
                     keyboardController?.hide()
                 }
             )
@@ -200,7 +205,7 @@ fun BillForm(
                 )
                 Spacer(modifier = Modifier.width(200.dp))
                 Text(
-                    text = "$33.00",
+                    text = "$${tipAmountState.value}",
                     modifier = Modifier.align(alignment = Alignment.CenterVertically)
                 )
             }
@@ -208,16 +213,26 @@ fun BillForm(
             //Tip percentage text and slider
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = "%$tipPercentage")
+                Log.d("TAG", "tip Percentage 2: $tipPercentage")
                 Spacer(modifier = Modifier.height(14.dp))
 
                 //slider
                 Slider(
-                    value = sliderPositionState.value, valueRange = 0f..0.2f, onValueChange = { newVal ->
+                    value = sliderPositionState.value,
+                    onValueChange = { newVal ->
                         sliderPositionState.value = newVal
-                        Log.d("TAG", "BillForm: $newVal")
+                        tipAmountState.value =
+                            calculateTotalTip(
+                                totalBill = totalBillState.value.toDouble(),
+                                tipPercentage = tipPercentage
+                            )
+                        //TODO - Check slider range and steps. It doesn't work well.
+//                        Log.d("TAG", "slider Position: ${sliderPositionState.value}")
+//                        Log.d("TAG", "tip Amount: ${tipAmountState.value}")
+//                        Log.d("TAG", "tip Percentage: $tipPercentage")
                     },
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                    steps = 3
+                    onValueChangeFinished = {}
                 )
             }
 //            } else {
