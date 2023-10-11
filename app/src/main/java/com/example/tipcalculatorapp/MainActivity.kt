@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tipcalculatorapp.components.InputField
 import com.example.tipcalculatorapp.ui.theme.TipCalculatorAppTheme
+import com.example.tipcalculatorapp.util.calculateTotalPerPerson
 import com.example.tipcalculatorapp.util.calculateTotalTip
 import com.example.tipcalculatorapp.widgets.RoundIconButton
 
@@ -132,10 +133,12 @@ fun BillForm(
         mutableStateOf(0.0)
     }
     val tipPercentage = (sliderPositionState.value * 100).toInt()
+    val totalPerPersonState = remember{
+        mutableStateOf(0.0)
+    }
 
 
-
-    TopHeader()
+    TopHeader(totalPerPeron = totalPerPersonState.value)
 
     Surface(
         modifier = Modifier
@@ -158,9 +161,15 @@ fun BillForm(
                     onValueChange(totalBillState.value.trim())
                     Log.d("TAG", "total bill: ${totalBillState.value}")
                     keyboardController?.hide()
+                    totalPerPersonState.value =
+                        calculateTotalPerPerson(
+                            totalBill = totalBillState.value.toDouble(),
+                            splitBy = splitBy.value,
+                            tipPercentage = tipPercentage
+                        )
                 }
             )
-//            if (validState) {
+            if (validState) {
             Row(
                 modifier = Modifier.padding(3.dp),
                 horizontalArrangement = Arrangement.Start
@@ -181,6 +190,13 @@ fun BillForm(
                             splitBy.value =
                                 if (splitBy.value > splitRange.first) splitBy.value - 1
                                 else 1
+
+                            totalPerPersonState.value =
+                                calculateTotalPerPerson(
+                                    totalBill = totalBillState.value.toDouble(),
+                                    splitBy = splitBy.value,
+                                    tipPercentage = tipPercentage
+                                )
                         })
                     Text(
                         text = "${splitBy.value}",
@@ -192,6 +208,12 @@ fun BillForm(
                         onClick = {
                             if (splitBy.value < splitRange.last) {
                                 splitBy.value += 1
+                                totalPerPersonState.value =
+                                    calculateTotalPerPerson(
+                                        totalBill = totalBillState.value.toDouble(),
+                                        splitBy = splitBy.value,
+                                        tipPercentage = tipPercentage
+                                    )
                             }
                         })
                 }
@@ -219,6 +241,8 @@ fun BillForm(
                 //slider
                 Slider(
                     value = sliderPositionState.value,
+//                    steps = 3,
+//                    valueRange = 0f..0.2f,
                     onValueChange = { newVal ->
                         sliderPositionState.value = newVal
                         tipAmountState.value =
@@ -230,14 +254,22 @@ fun BillForm(
 //                        Log.d("TAG", "slider Position: ${sliderPositionState.value}")
 //                        Log.d("TAG", "tip Amount: ${tipAmountState.value}")
 //                        Log.d("TAG", "tip Percentage: $tipPercentage")
+
+
+                        totalPerPersonState.value =
+                            calculateTotalPerPerson(
+                                totalBill = totalBillState.value.toDouble(),
+                                splitBy = splitBy.value,
+                                tipPercentage = tipPercentage
+                            )
                     },
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                     onValueChangeFinished = {}
                 )
             }
-//            } else {
-//                Box() {}
-//            }
+            } else {
+                Box() {}
+            }
 
         }
 
